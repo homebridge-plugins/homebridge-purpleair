@@ -1,8 +1,17 @@
 {
   "name": "homebridge-airly",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Homebridge plugin for showing air condition data",
   "main": "index.js",
+  "keywords": [
+    "homebridge-plugin",
+    "homebridge",
+    "airnow",
+    "aqicn",
+    "air quality",
+    "waqi",
+    "pollution"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,7 +19,7 @@
     "type": "git",
     "url": "git+https://github.com/beniamin-rychter-coderslab/homebridge-airly.git"
   },
-  "author": "",
+  "author": "Beniamin Rychter",
   "license": "GNU",
   "bugs": {
     "url": "https://github.com/beniamin-rychter-coderslab/homebridge-airly/issues"
