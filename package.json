@@ -1,0 +1,22 @@
+{
+  "name": "homebridge-airly",
+  "version": "1.0.0",
+  "description": "Homebridge plugin for showing air condition data",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/beniamin-rychter-coderslab/homebridge-airly.git"
+  },
+  "author": "",
+  "license": "GNU",
+  "bugs": {
+    "url": "https://github.com/beniamin-rychter-coderslab/homebridge-airly/issues"
+  },
+  "homepage": "https://github.com/beniamin-rychter-coderslab/homebridge-airly#readme",
+  "dependencies": {
+    "request": "^2.83.0"
+  }
+}
