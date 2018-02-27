@@ -1,6 +1,6 @@
 {
   "name": "homebridge-airly",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Homebridge plugin for showing air condition data",
   "main": "index.js",
   "keywords": [
