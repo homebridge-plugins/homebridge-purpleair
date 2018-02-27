@@ -39,6 +39,7 @@ function AirAccessory(log, config){
 
 
     this.lastupdate = 0;
+    this.cache = undefined;
 
     this.log.info("Airly is working");
 }
@@ -61,34 +62,60 @@ AirAccessory.prototype = {
         var url = 'https://airapi.airly.eu/v1/nearestSensor/measurements?latitude='+ this.latitude +'&longitude='+ this.longitude;
 
 
-        request({
-            url: url,
-            json: true,
-            headers: {
-                'apikey': self.apikey
-            }
-        }, function (err, response, data) {
+        // Make request only every two minutes
+        if( this.lastupdate === 0 || this.lastupdate + 120 < (new Date().getTime() / 1000) || this.cache === undefined ) {
 
-            // If no errors
-            if( !err && response.statusCode === 200 ){
+            request({
+                url: url,
+                json: true,
+                headers: {
+                    'apikey': self.apikey
+                }
+            }, function (err, response, data) {
 
-                self.airService.setCharacteristic(Characteristic.StatusFault,1);
+                // If no errors
+                if (!err && response.statusCode === 200) {
 
-                self.airService.setCharacteristic( Characteristic.PM2_5Density, parseFloat(data.pm25) );
-                self.airService.setCharacteristic( Characteristic.PM10Density, parseFloat(data.pm10) );
+                    aqi = self.updateData( data, 'Fetch' );
 
-                aqi = data.airQualityIndex;
+                } else {
+                    self.airService.setCharacteristic(Characteristic.StatusFault, 0);
+                    self.log.error("Airly Network or Unknown Error.");
+                }
 
-                self.log.debug("Airly air quality is: %s.", aqi.toString());
+            });
 
-            } else {
-                self.airService.setCharacteristic(Characteristic.StatusFault,0);
-                self.log.error("Airly Network or Unknown Error.");
-            }
 
-            callback(self.transformAQI(aqi));
-        });
+        } else {
+            aqi = self.updateData( self.cache, 'Cache' );
+        }
+
+
+        callback(this.transformAQI(aqi));
     },
+
+
+    /**
+     * Update data
+     */
+    updateData: function (data, type){
+
+        this.airService.setCharacteristic(Characteristic.StatusFault, 1);
+
+        this.airService.setCharacteristic(Characteristic.PM2_5Density, parseFloat(data.pm25));
+        this.airService.setCharacteristic(Characteristic.PM10Density, parseFloat(data.pm10));
+
+        var aqi = data.airQualityIndex;
+        this.log.info("[%s] Airly air quality is: %s.", type, aqi.toString());
+
+        this.cache = data;
+
+        if( type === 'Fetch' )
+            this.lastupdate = new Date().getTime() / 1000;
+
+        return aqi;
+    },
+
 
     /**
      * Return Air Quality Index
