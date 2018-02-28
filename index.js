@@ -1,11 +1,5 @@
 "use strict";
 
-/**
- * Author: Beniamin Rychter
- * Based on homebridge-airnow and homebridge-weather
- */
-
-
 var Service, Characteristic;
 var airService;
 var request = require('request');
@@ -22,7 +16,7 @@ module.exports = function (homebridge) {
 /**
  * Air Accessory
  */
-function AirAccessory(log, config){
+function AirAccessory(log, config) {
     this.log = log;
 
     // Name and API key from airly
@@ -34,8 +28,8 @@ function AirAccessory(log, config){
     this.longitude = config['longitude'];
 
 
-    if( !this.latitude ) throw new Error("Airly - you must provide a config value for 'latitude'.");
-    if( !this.longitude ) throw new Error("Airly - you must provide a config value for 'longitude'.");
+    if (!this.latitude) throw new Error("Airly - you must provide a config value for 'latitude'.");
+    if (!this.longitude) throw new Error("Airly - you must provide a config value for 'longitude'.");
 
 
     this.lastupdate = 0;
@@ -47,8 +41,8 @@ function AirAccessory(log, config){
 
 AirAccessory.prototype = {
 
-    getAir: function(callback){
-        this.getAirData(function(a) {
+    getAir: function (callback) {
+        this.getAirData(function (a) {
             callback(null, a);
         });
     },
@@ -59,11 +53,11 @@ AirAccessory.prototype = {
     getAirData: function (callback) {
         var self = this;
         var aqi = 0;
-        var url = 'https://airapi.airly.eu/v1/nearestSensor/measurements?latitude='+ this.latitude +'&longitude='+ this.longitude;
+        var url = 'https://airapi.airly.eu/v1/nearestSensor/measurements?latitude=' + this.latitude + '&longitude=' + this.longitude;
 
 
         // Make request only every two minutes
-        if( this.lastupdate === 0 || this.lastupdate + 120 < (new Date().getTime() / 1000) || this.cache === undefined ) {
+        if (this.lastupdate === 0 || this.lastupdate + 120 < (new Date().getTime() / 1000) || this.cache === undefined) {
 
             request({
                 url: url,
@@ -76,29 +70,30 @@ AirAccessory.prototype = {
                 // If no errors
                 if (!err && response.statusCode === 200) {
 
-                    aqi = self.updateData( data, 'Fetch' );
+                    aqi = self.updateData(data, 'Fetch');
+                    callback(self.transformAQI(aqi));
 
+                    // If error
                 } else {
                     self.airService.setCharacteristic(Characteristic.StatusFault, 0);
                     self.log.error("Airly Network or Unknown Error.");
+                    callback(err);
                 }
 
             });
 
-
+        // Return cached data
         } else {
-            aqi = self.updateData( self.cache, 'Cache' );
+            aqi = self.updateData(self.cache, 'Cache');
+            callback(self.transformAQI(aqi));
         }
-
-
-        callback(this.transformAQI(aqi));
     },
 
 
     /**
      * Update data
      */
-    updateData: function (data, type){
+    updateData: function (data, type) {
 
         this.airService.setCharacteristic(Characteristic.StatusFault, 1);
 
@@ -110,7 +105,7 @@ AirAccessory.prototype = {
 
         this.cache = data;
 
-        if( type === 'Fetch' )
+        if (type === 'Fetch')
             this.lastupdate = new Date().getTime() / 1000;
 
         return aqi;
@@ -124,19 +119,19 @@ AirAccessory.prototype = {
      */
     transformAQI: function (aqi) {
         if (!aqi) {
-            return(0); // Error or unknown response
+            return (0); // Error or unknown response
         } else if (aqi <= 50) {
-            return(1); // Return EXCELLENT
+            return (1); // Return EXCELLENT
         } else if (aqi >= 51 && aqi <= 100) {
-            return(2); // Return GOOD
+            return (2); // Return GOOD
         } else if (aqi >= 101 && aqi <= 150) {
-            return(3); // Return FAIR
+            return (3); // Return FAIR
         } else if (aqi >= 151 && aqi <= 200) {
-            return(4); // Return INFERIOR
+            return (4); // Return INFERIOR
         } else if (aqi >= 201) {
-            return(5); // Return POOR (Homekit only goes to cat 5, so combined the last two AQI cats of Very Unhealty and Hazardous.
+            return (5); // Return POOR (Homekit only goes to cat 5, so combined the last two AQI cats of Very Unhealty and Hazardous.
         } else {
-            return(0); // Error or unknown response.
+            return (0); // Error or unknown response.
         }
     },
 
