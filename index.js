@@ -120,15 +120,15 @@ AirAccessory.prototype = {
     transformAQI: function (aqi) {
         if (!aqi) {
             return (0); // Error or unknown response
-        } else if (aqi <= 50) {
+        } else if (aqi <= 25) {
             return (1); // Return EXCELLENT
-        } else if (aqi >= 51 && aqi <= 100) {
+        } else if (aqi > 25 && aqi <= 50) {
             return (2); // Return GOOD
-        } else if (aqi >= 101 && aqi <= 150) {
+        } else if (aqi > 50 && aqi <= 75) {
             return (3); // Return FAIR
-        } else if (aqi >= 151 && aqi <= 200) {
+        } else if (aqi > 75 && aqi <= 100) {
             return (4); // Return INFERIOR
-        } else if (aqi >= 201) {
+        } else if (aqi > 100) {
             return (5); // Return POOR (Homekit only goes to cat 5, so combined the last two AQI cats of Very Unhealty and Hazardous.
         } else {
             return (0); // Error or unknown response.

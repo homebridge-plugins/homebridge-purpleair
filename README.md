@@ -33,7 +33,7 @@ Example config.json
 
 ## Config file
 Fields:
-- `accessory` must be "Air' (required).
+- `accessory` must be "Air" (required).
 - `apikey` API key from Airly Developers (required).
 - `latitude` String with your latitude e.g. `"52.229676"` (required).
 - `longitude` String with your longitude e.g. `"21.012229"` (required).

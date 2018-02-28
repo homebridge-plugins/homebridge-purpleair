@@ -6,10 +6,8 @@
   "keywords": [
     "homebridge-plugin",
     "homebridge",
-    "airnow",
-    "aqicn",
+    "airly",
     "air quality",
-    "waqi",
     "pollution"
   ],
   "scripts": {
