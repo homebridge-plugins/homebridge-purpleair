@@ -75,7 +75,7 @@ AirAccessory.prototype = {
 
                     // If error
                 } else {
-                    self.airService.setCharacteristic(Characteristic.StatusFault, 0);
+                    self.airService.setCharacteristic(Characteristic.StatusFault, 1);
                     self.log.error("Airly Network or Unknown Error.");
                     callback(err);
                 }
@@ -95,7 +95,7 @@ AirAccessory.prototype = {
      */
     updateData: function (data, type) {
 
-        this.airService.setCharacteristic(Characteristic.StatusFault, 1);
+        this.airService.setCharacteristic(Characteristic.StatusFault, 0);
 
         this.airService.setCharacteristic(Characteristic.PM2_5Density, parseFloat(data.pm25));
         this.airService.setCharacteristic(Characteristic.PM10Density, parseFloat(data.pm10));
