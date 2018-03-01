@@ -5,11 +5,9 @@ var airService;
 var request = require('request');
 
 module.exports = function (homebridge) {
-
     Service = homebridge.hap.Service;
     Characteristic = homebridge.hap.Characteristic;
     homebridge.registerAccessory("homebridge-airly", "Air", AirAccessory);
-
 };
 
 
@@ -41,12 +39,6 @@ function AirAccessory(log, config) {
 
 AirAccessory.prototype = {
 
-    getAir: function (callback) {
-        this.getAirData(function (a) {
-            callback(null, a);
-        });
-    },
-
     /**
      * Get all Air data from airly
      */
@@ -56,8 +48,8 @@ AirAccessory.prototype = {
         var url = 'https://airapi.airly.eu/v1/nearestSensor/measurements?latitude=' + this.latitude + '&longitude=' + this.longitude;
 
 
-        // Make request only every two minutes
-        if (this.lastupdate === 0 || this.lastupdate + 120 < (new Date().getTime() / 1000) || this.cache === undefined) {
+        // Make request only every ten minutes
+        if (this.lastupdate === 0 || this.lastupdate + 600 < (new Date().getTime() / 1000) || this.cache === undefined) {
 
             request({
                 url: url,
@@ -71,21 +63,21 @@ AirAccessory.prototype = {
                 if (!err && response.statusCode === 200) {
 
                     aqi = self.updateData(data, 'Fetch');
-                    callback(self.transformAQI(aqi));
+                    callback(null, self.transformAQI(aqi));
 
                     // If error
                 } else {
-                    self.airService.setCharacteristic(Characteristic.StatusFault, 1);
+                    airService.setCharacteristic(Characteristic.StatusFault, 1);
                     self.log.error("Airly Network or Unknown Error.");
                     callback(err);
                 }
 
             });
 
-        // Return cached data
+            // Return cached data
         } else {
             aqi = self.updateData(self.cache, 'Cache');
-            callback(self.transformAQI(aqi));
+            callback(null, self.transformAQI(aqi));
         }
     },
 
@@ -95,18 +87,19 @@ AirAccessory.prototype = {
      */
     updateData: function (data, type) {
 
-        this.airService.setCharacteristic(Characteristic.StatusFault, 0);
+        airService.setCharacteristic(Characteristic.StatusFault, 0);
 
-        this.airService.setCharacteristic(Characteristic.PM2_5Density, parseFloat(data.pm25));
-        this.airService.setCharacteristic(Characteristic.PM10Density, parseFloat(data.pm10));
+        airService.setCharacteristic(Characteristic.PM2_5Density, data.pm25);
+        airService.setCharacteristic(Characteristic.PM10Density, data.pm10);
 
         var aqi = data.airQualityIndex;
         this.log.info("[%s] Airly air quality is: %s.", type, aqi.toString());
 
         this.cache = data;
 
-        if (type === 'Fetch')
+        if (type === 'Fetch') {
             this.lastupdate = new Date().getTime() / 1000;
+        }
 
         return aqi;
     },
@@ -135,6 +128,7 @@ AirAccessory.prototype = {
         }
     },
 
+
     identify: function (callback) {
         this.log("Identify requested!");
         callback(); // success
@@ -143,25 +137,31 @@ AirAccessory.prototype = {
 
     getServices: function () {
         var services = [];
-        var informationService = new Service.AccessoryInformation();
 
+        /**
+         * Informations
+         */
+        var informationService = new Service.AccessoryInformation();
         informationService
             .setCharacteristic(Characteristic.Manufacturer, "Airly")
             .setCharacteristic(Characteristic.Model, "API")
             .setCharacteristic(Characteristic.SerialNumber, "123-456");
         services.push(informationService);
 
+        /**
+         * AirService
+         */
+        airService = new Service.AirQualitySensor(this.name);
 
-        this.airService = new Service.AirQualitySensor(this.name);
-
-        this.airService
+        airService
             .getCharacteristic(Characteristic.AirQuality)
-            .on('get', this.getAir.bind(this));
+            .on('get', this.getAirData.bind(this));
 
-        this.airService.addCharacteristic(Characteristic.StatusFault);
-        this.airService.addCharacteristic(Characteristic.PM2_5Density);
-        this.airService.addCharacteristic(Characteristic.PM10Density);
-        services.push(this.airService);
+        airService.addCharacteristic(Characteristic.StatusFault);
+        airService.addCharacteristic(Characteristic.PM2_5Density);
+        airService.addCharacteristic(Characteristic.PM10Density);
+        services.push(airService);
+
 
         return services;
     }
