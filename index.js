@@ -1,43 +1,44 @@
 "use strict";
 
 var Service, Characteristic;
-var airService;
+var purpleAirService;
 var request = require('request');
 
 module.exports = function (homebridge) {
     Service = homebridge.hap.Service;
     Characteristic = homebridge.hap.Characteristic;
-    homebridge.registerAccessory("homebridge-airly", "Air", AirAccessory);
+    homebridge.registerAccessory("homebridge-purpleair", "PurpleAir", PurpleAirAccessory);
 };
 
 
 /**
- * Air Accessory
+ * PurpleAir Accessory
  */
-function AirAccessory(log, config) {
+function PurpleAirAccessory(log, config) {
     this.log = log;
 
     // Name and API key from airly
-    this.name = config['name'];
-    this.apikey = config['apikey'];
+    // this.name = config['name'];
+    this.purpleID = config['purpleID'];
+    this.updateFreq = config['updateFreq'];
 
     // Latitude and longitude
-    this.latitude = config['latitude'];
-    this.longitude = config['longitude'];
+    // this.latitude = config['latitude'];
+    // this.longitude = config['longitude'];
 
 
-    if (!this.latitude) throw new Error("Airly - you must provide a config value for 'latitude'.");
-    if (!this.longitude) throw new Error("Airly - you must provide a config value for 'longitude'.");
+    // if (!this.latitude) throw new Error("Airly - you must provide a config value for 'latitude'.");
+    // if (!this.longitude) throw new Error("Airly - you must provide a config value for 'longitude'.");
 
 
     this.lastupdate = 0;
     this.cache = undefined;
 
-    this.log.info("Airly is working");
+    this.log.info("PurpleAir is working");
 }
 
 
-AirAccessory.prototype = {
+PurpleAirAccessory.prototype = {
 
     /**
      * Get all Air data from airly
@@ -45,18 +46,21 @@ AirAccessory.prototype = {
     getAirData: function (callback) {
         var self = this;
         var aqi = 0;
-        var url = 'https://airapi.airly.eu/v1/nearestSensor/measurements?latitude=' + this.latitude + '&longitude=' + this.longitude;
+                uri: 'https://www.purpleair.com',
+        path: '/json',
+        query: [show: settings.purpleID]
+        var url = 'https://www.purpleair.com/json?show:' + this.purpleID;
 
 
         // Make request only every ten minutes
-        if (this.lastupdate === 0 || this.lastupdate + 600 < (new Date().getTime() / 1000) || this.cache === undefined) {
+        if (this.lastupdate === 0 || this.lastupdate + this.updateFreq < (new Date().getTime() / 1000) || this.cache === undefined) {
 
             request({
                 url: url,
                 json: true,
-                headers: {
-                    'apikey': self.apikey
-                }
+                // headers: {
+                //    'apikey': self.apikey
+                //}
             }, function (err, response, data) {
 
                 // If no errors
@@ -67,8 +71,8 @@ AirAccessory.prototype = {
 
                     // If error
                 } else {
-                    airService.setCharacteristic(Characteristic.StatusFault, 1);
-                    self.log.error("Airly Network or Unknown Error.");
+                    purpleAirService.setCharacteristic(Characteristic.StatusFault, 1);
+                    self.log.error("PurpleAir Network or Unknown Error.");
                     callback(err);
                 }
 
@@ -87,8 +91,8 @@ AirAccessory.prototype = {
      */
     updateData: function (data, type) {
 
-        airService.setCharacteristic(Characteristic.StatusFault, 0);
-
+        purpleAirService.setCharacteristic(Characteristic.StatusFault, 0);
+/////
         airService.setCharacteristic(Characteristic.PM2_5Density, data.pm25);
         airService.setCharacteristic(Characteristic.PM10Density, data.pm10);
 
