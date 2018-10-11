@@ -17,83 +17,85 @@ module.exports = function (homebridge) {
 function PurpleAirAccessory(log, config) {
     this.log = log;
 
-    // Name and API key from airly
-    // this.name = config['name'];
+    // Name and API key from PurpleAir
+    this.name = config['name'];
     this.purpleID = config['purpleID'];
-    this.updateFreq = config['updateFreq'];
-
-    // Latitude and longitude
-    // this.latitude = config['latitude'];
-    // this.longitude = config['longitude'];
-
-
-    // if (!this.latitude) throw new Error("Airly - you must provide a config value for 'latitude'.");
-    // if (!this.longitude) throw new Error("Airly - you must provide a config value for 'longitude'.");
-
-
+    this.updateFreq = config['updateFreq'] || 300 ;     // default 5 minutes (in seconds)
     this.lastupdate = 0;
     this.cache = undefined;
-
     this.log.info("PurpleAir is working");
 }
 
-
 PurpleAirAccessory.prototype = {
-
     /**
      * Get all Air data from airly
      */
     getAirData: function (callback) {
         var self = this;
         var aqi = 0;
-                uri: 'https://www.purpleair.com',
-        path: '/json',
-        query: [show: settings.purpleID]
         var url = 'https://www.purpleair.com/json?show:' + this.purpleID;
-
 
         // Make request only every ten minutes
         if (this.lastupdate === 0 || this.lastupdate + this.updateFreq < (new Date().getTime() / 1000) || this.cache === undefined) {
-
             request({
                 url: url,
                 json: true,
-                // headers: {
-                //    'apikey': self.apikey
-                //}
             }, function (err, response, data) {
-
                 // If no errors
                 if (!err && response.statusCode === 200) {
-
                     aqi = self.updateData(data, 'Fetch');
                     callback(null, self.transformAQI(aqi));
-
-                    // If error
+                // If error
                 } else {
                     purpleAirService.setCharacteristic(Characteristic.StatusFault, 1);
                     self.log.error("PurpleAir Network or Unknown Error.");
                     callback(err);
-                }
-
+                };
             });
 
-            // Return cached data
+        // Return cached data
         } else {
             aqi = self.updateData(self.cache, 'Cache');
             callback(null, self.transformAQI(aqi));
-        }
+        };
     },
-
 
     /**
      * Update data
      */
     updateData: function (data, type) {
-
+        var parser = require('json-parser');
         purpleAirService.setCharacteristic(Characteristic.StatusFault, 0);
-/////
-        airService.setCharacteristic(Characteristic.PM2_5Density, data.pm25);
+        Map stats = [:];
+        var newest;
+        var single = null;
+        if (data.results[0]?.Stats) {stats[0] = parser.parse(data.results[0].Stats, null, true)};
+        if (data.results[0]?.DEVICE_LOCATIONTYPE != 'inside') {
+            if (data.results[1]?.Stats) stats[1] = parser.parse(data.results[1].Stats, null, true);
+            if (stats[0]?.lastModified?.toLong() > stats[1]?.lastModified?.toLong()) {
+                newest = stats[0].lastModified.toLong();
+            } else {
+                newest = stats[1].lastModified.toLong();
+            };
+        } else {
+            stats[1] = [:];
+            if (!data.results[1]?.A_H && (stats[0] != [:])) {
+                single = 0;
+                newest = stats[0].lastModified.toLong();
+            } else {
+                single = -1;
+            };
+        };
+    };
+    if (newest == this.lastupdate) { // no change
+        // nothing changed
+    }
+            
+            
+            
+                
+        this.pm25 = data.results[0]
+        purpleAirService.setCharacteristic(Characteristic.PM2_5Density, 
         airService.setCharacteristic(Characteristic.PM10Density, data.pm10);
 
         var aqi = data.airQualityIndex;
