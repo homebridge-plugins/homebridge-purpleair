@@ -1,12 +1,13 @@
 {
-  "name": "homebridge-airly",
-  "version": "1.1.6",
-  "description": "Homebridge plugin for showing air condition data",
+  "name": "homebridge-purpleair",
+  "version": "1.0.0",
+  "description": "Homebridge plugin for showing PurpleAir air quality data",
   "main": "index.js",
   "keywords": [
     "homebridge-plugin",
     "homebridge",
-    "airly",
+    "purple air",
+    "purpleair",
     "air quality",
     "pollution"
   ],
@@ -15,18 +16,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/beniamin-rychter-coderslab/homebridge-airly.git"
+    "url": "git+https://github.com/SANdood/homebridge-purpleair.git"
   },
   "engines": {
     "node": ">=0.12.0",
     "homebridge": ">=0.2.0"
   },
-  "author": "Beniamin Rychter",
+  "author": "Barry A. Burke",
   "license": "GNU",
   "bugs": {
-    "url": "https://github.com/beniamin-rychter-coderslab/homebridge-airly/issues"
+    "url": "https://github.comSANdoodb/homebridge-purpleair/issues"
   },
-  "homepage": "https://github.com/beniamin-rychter-coderslab/homebridge-airly#readme",
+  "homepage": "https://github.com/SANdood/homebridge-purpleair#readme",
   "dependencies": {
     "request": "^2.83.0"
   }
