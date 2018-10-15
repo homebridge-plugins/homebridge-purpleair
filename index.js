@@ -35,7 +35,7 @@ PurpleAirAccessory.prototype = {
     getPurpleAirData: function (callback) {
         var self = this;
         var aqi = 0;
-        var url = 'https://www.purpleair.com/json?show:' + this.purpleID;
+        var url = 'https://www.purpleair.com/json?show=' + this.purpleID;
 
 		// Make request only every updateFreq seconds (PurpleAir actual update frequency is around 40 seconds, but we really don't need that precision here}
 		var timenow = Date.now();
@@ -137,11 +137,11 @@ PurpleAirAccessory.prototype = {
 				var aqiCode
 				if (single >= 0) {
 					if (single == 2) {
-						pm = Math.round(((statsA.v + statsB.v)/2.0));
+						pm = Math.round( ((statsA.v + statsB.v)/2.0) * 100) / 100;
 					} else if (single == 0) {
-						pm = Math.round(statsA.v);
+						pm = Math.round(statsA.v * 100) / 100;
 					} else {
-						pm = Math.round(statsB.v);
+						pm = Math.round(statsB.v * 100) / 100;
 					}
 					aqi = Math.round(self.calculateAQI(pm));
 				} else {
@@ -152,7 +152,7 @@ PurpleAirAccessory.prototype = {
 						return 0;
 					}
 				}
-				purpleAirService.setCharacteristic(Characteristic.PM2_5Density, pm.toString());
+				purpleAirService.setCharacteristic(Characteristic.PM2_5Density, pmtoString());
 //				purpleAirService.setCharacteristic(Characteristic.AirQualityIndex, aqi.toString());
 				// PM10 data isn't available via this PurpleAir API
 				// airService.setCharacteristic(Characteristic.PM10Density, data.pm10);
