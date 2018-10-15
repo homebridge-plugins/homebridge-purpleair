@@ -1,7 +1,7 @@
 # Homebridge-airly
 [![NPM Version](https://img.shields.io/npm/v/homebridge-airly.svg)](https://www.npmjs.com/package/homebridge-airly)
 
-**Homebridge plugin that is showing information about air quality from Airly API.**
+**Homebridge plugin that is showing information about air quality from PurpleAir API.**
 
 Project is based on [homebridge-weather](https://github.com/werthdavid/homebridge-weather) and [homebridge-arinow](https://github.com/ToddGreenfield/homebridge-airnow).
 
@@ -23,18 +23,16 @@ Example config.json
 "accessories": [
     {
           "accessory": "Air",
-          "apikey": "YOUR_API_KEY",
-          "latitude": "YOUR_LATITUDE",
-          "longitude": "YOUR_LONGITUDE",
-          "name": "Airly Air Quality"
+          "purpleID": "PURPLE_AIR_STATION_ID",
+          "updateFreq": MIN_SECS_BETWEEN_API_READ
+          "name": "PurpleAir Air Quality"
     }
 ]
 ```
 
 ## Config file
 Fields:
-- `accessory` must be "Air" (required).
-- `apikey` API key from Airly Developers (required).
-- `latitude` String with your latitude e.g. `"52.229676"` (required).
-- `longitude` String with your longitude e.g. `"21.012229"` (required).
+- `accessory` must be "PurpleAir" (required).
+- `purpleID` PurpleAir Station ID from http://www.purpleair.com/json (required).
+- `updateFreq` minimum number of seconds between reads from PurpleAir API
 - `name` Is the name of accessory (required).
