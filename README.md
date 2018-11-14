@@ -5,7 +5,7 @@
 
 Project is based on [homebridge-weather](https://github.com/werthdavid/homebridge-weather) and [homebridge-arinow](https://github.com/ToddGreenfield/homebridge-airnow).
 
-## Instalation
+## Installation
 1. Install Homebridge using: `(sudo) npm install -g --unsafe-perm homebridge`.
 1. Install this plugin using: `(sudo) npm install -g homebridge-airly`.
 1. Get **API Key** from Airly. Login here <https://developer.airly.eu/login> and generate it.
