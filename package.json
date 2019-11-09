@@ -29,6 +29,8 @@
   },
   "homepage": "https://github.com/SANdood/homebridge-purpleair#readme",
   "dependencies": {
-    "request": "^2.83.0"
+    "request": "^2.83.0",
+    "stringstream": ">=0.0.6",
+    "extend": ">=3.0.2",
   }
 }
