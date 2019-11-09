@@ -152,7 +152,7 @@ PurpleAirAccessory.prototype = {
 						return 0;
 					}
 				}
-				purpleAirService.setCharacteristic(Characteristic.PM2_5Density, pmtoString());
+				purpleAirService.setCharacteristic(Characteristic.PM2_5Density, pm.toString());
 //				purpleAirService.setCharacteristic(Characteristic.AirQualityIndex, aqi.toString());
 				// PM10 data isn't available via this PurpleAir API
 				// airService.setCharacteristic(Characteristic.PM10Density, data.pm10);
