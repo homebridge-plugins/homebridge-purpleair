@@ -24,7 +24,7 @@ function PurpleAirAccessory(log, config) {
     this.lastupdate = 0;
     this.cache = undefined;
     this.log.info("PurpleAir is working");
-    if (this.updateFreq == undefined) this.updateFreq = 300		// default 5 minutes
+    if (this.updateFreq == undefined) this.updateFreq = 300     // default 5 minutes
     this.updateMsecs = this.updateFreq * 1000;
 }
 
@@ -37,9 +37,9 @@ PurpleAirAccessory.prototype = {
         var aqi = 0;
         var url = 'https://www.purpleair.com/json?show=' + this.purpleID;
 
-		// Make request only every updateFreq seconds (PurpleAir actual update frequency is around 40 seconds, but we really don't need that precision here}
-		var timenow = Date.now();
-		// this.log("getPurpleAirData called... lastupdate: %s, now: %s, freq: %s", this.lastupdate.toString(), timenow.toString(), this.updateMsecs.toString());
+        // Make request only every updateFreq seconds (PurpleAir actual update frequency is around 40 seconds, but we really don't need that precision here}
+        var timenow = Date.now();
+        // this.log("getPurpleAirData called... lastupdate: %s, now: %s, freq: %s", this.lastupdate.toString(), timenow.toString(), this.updateMsecs.toString());
         if (this.lastupdate === 0 || ((this.lastupdate + this.updateMsecs) < timenow) || this.cache === undefined) {
             request({
                 url: url,
@@ -68,143 +68,143 @@ PurpleAirAccessory.prototype = {
      * Update data
      */
     updateData: function (data, type) {
-	var self = this;
+    var self = this;
          purpleAirService.setCharacteristic(Characteristic.StatusFault, 0);
-		// PurpleAir outdoor sensors send data from two internal sensors, but indoor sensors only have one
-		// We have to verify exterior/interior, and if exterior, whether both sensors are working or only 1
+        // PurpleAir outdoor sensors send data from two internal sensors, but indoor sensors only have one
+        // We have to verify exterior/interior, and if exterior, whether both sensors are working or only 1
         var statsA; //  = undefined;
-		var statsB;
+        var statsB;
         var newest = 0;
         var single = null;
-		if (data.results != undefined) {
-			if (data.results[0] != undefined) {
-				// stats[0] = undefined
-				if (data.results[0].Stats != undefined) statsA = JSON.parse(data.results[0].Stats);
-				if (data.results[0].DEVICE_LOCATIONTYPE != 'inside') {
-					// outside sensor, check for both sensors and find the one updated most recently
-					if (data.results[1] != undefined) {
-						//stats[1] = undefined
-						if (data.results[1].Stats != undefined) statsB = JSON.parse(data.results[1].Stats);
-						if (statsA.lastModified > statsB.lastModified) {		// lastModified is epoch time in milliseconds
-							newest = statsA.lastModified;
-						} else {
-							newest = statsB.lastModified;
-						}
-					}
-				} else {
-					// indoor sensor - make sure the data is valid 
-					// stats[1] = undefined;
-					if ((data.results[0].A_H != true) && (data.results[0].PM2_5Value != undefined) && (data.results[0].PM2_5Value != null)) {
-						single = 0;
-						newest = statsA.lastModified;
-					} else {
-						single = -1;
-					}
-				}
-				if (newest == this.lastupdate) { // no change
-					// nothing changed, return cached value?
-					if ((type != 'Cache') && (this.cache != undefined)) {
-						return self.updateData(this.cache, 'Cache');
-					} else {
-						return 0;
-					}
-				}
+        if (data.results != undefined) {
+            if (data.results[0] != undefined) {
+                // stats[0] = undefined
+                if (data.results[0].Stats != undefined) statsA = JSON.parse(data.results[0].Stats);
+                if (data.results[0].DEVICE_LOCATIONTYPE != 'inside') {
+                    // outside sensor, check for both sensors and find the one updated most recently
+                    if (data.results[1] != undefined) {
+                        //stats[1] = undefined
+                        if (data.results[1].Stats != undefined) statsB = JSON.parse(data.results[1].Stats);
+                        if (statsA.lastModified > statsB.lastModified) {        // lastModified is epoch time in milliseconds
+                            newest = statsA.lastModified;
+                        } else {
+                            newest = statsB.lastModified;
+                        }
+                    }
+                } else {
+                    // indoor sensor - make sure the data is valid
+                    // stats[1] = undefined;
+                    if ((data.results[0].A_H != true) && (data.results[0].PM2_5Value != undefined) && (data.results[0].PM2_5Value != null)) {
+                        single = 0;
+                        newest = statsA.lastModified;
+                    } else {
+                        single = -1;
+                    }
+                }
+                if (newest == this.lastupdate) { // no change
+                    // nothing changed, return cached value?
+                    if ((type != 'Cache') && (this.cache != undefined)) {
+                        return self.updateData(this.cache, 'Cache');
+                    } else {
+                        return 0;
+                    }
+                }
                 // Now, figure out which PM2_5Value we are using
-				if (single == null) {
-					if ((data.results[0].A_H == true) || (data.results[0].PM2_5Value == undefined) || (data.results[0].PM2_5Value == null)) {
-						// A is bad
-						if ((data.results[1].A_H == true) || (data.results[1].PM2_5Value == undefined) || (data.results[1].PM2_5Value == null)) {
-							// A bad, B bad
-							single = -1;
-						} else {
-							// A bad, B good
-							single = 1;
-						}
-					} else {
-						// Channel A is good
-						if ((data.results[1].A_H == true) || (data.results[1].PM2_5Value == undefined) || (data.results[1].PM2_5Value == null)) {
-							// A good, B bad
-							single = 0;
-						} else {
-							// A good, B good
-							single = 2;
-						}
-					}
-				}
-				
-				var pm
-				var aqi
-				var aqiCode
-				if (single >= 0) {
-					if (single == 2) {
-						pm = Math.round( ((statsA.v + statsB.v)/2.0) * 100) / 100;
-					} else if (single == 0) {
-						pm = Math.round(statsA.v * 100) / 100;
-					} else {
-						pm = Math.round(statsB.v * 100) / 100;
-					}
-					aqi = Math.round(self.calculateAQI(pm));
-				} else {
-					// No valid data - return cached value?
-					if ((type != 'Cache') && (self.cache != undefined)) {
-						return self.updateData( self.cache, 'Cache');
-					} else {
-						return 0;
-					}
-				}
-				purpleAirService.setCharacteristic(Characteristic.PM2_5Density, pm.toString());
-//				purpleAirService.setCharacteristic(Characteristic.AirQualityIndex, aqi.toString());
-				// PM10 data isn't available via this PurpleAir API
-				// airService.setCharacteristic(Characteristic.PM10Density, data.pm10);
+                if (single == null) {
+                    if ((data.results[0].A_H == true) || (data.results[0].PM2_5Value == undefined) || (data.results[0].PM2_5Value == null)) {
+                        // A is bad
+                        if ((data.results[1].A_H == true) || (data.results[1].PM2_5Value == undefined) || (data.results[1].PM2_5Value == null)) {
+                            // A bad, B bad
+                            single = -1;
+                        } else {
+                            // A bad, B good
+                            single = 1;
+                        }
+                    } else {
+                        // Channel A is good
+                        if ((data.results[1].A_H == true) || (data.results[1].PM2_5Value == undefined) || (data.results[1].PM2_5Value == null)) {
+                            // A good, B bad
+                            single = 0;
+                        } else {
+                            // A good, B good
+                            single = 2;
+                        }
+                    }
+                }
+
+                var pm
+                var aqi
+                var aqiCode
+                if (single >= 0) {
+                    if (single == 2) {
+                        pm = Math.round( ((statsA.v + statsB.v)/2.0) * 100) / 100;
+                    } else if (single == 0) {
+                        pm = Math.round(statsA.v * 100) / 100;
+                    } else {
+                        pm = Math.round(statsB.v * 100) / 100;
+                    }
+                    aqi = Math.round(self.calculateAQI(pm));
+                } else {
+                    // No valid data - return cached value?
+                    if ((type != 'Cache') && (self.cache != undefined)) {
+                        return self.updateData( self.cache, 'Cache');
+                    } else {
+                        return 0;
+                    }
+                }
+                purpleAirService.setCharacteristic(Characteristic.PM2_5Density, pm.toString());
+//              purpleAirService.setCharacteristic(Characteristic.AirQualityIndex, aqi.toString());
+                // PM10 data isn't available via this PurpleAir API
+                // airService.setCharacteristic(Characteristic.PM10Density, data.pm10);
 
                 self.log.info("[%s] PurpleAir pm2_5 is %s, AQI is %s, Air Quality is %s.", type, pm.toString(), aqi.toString(), self.airQualityString(aqi));
 
-				self.cache = data;
+                self.cache = data;
 
-				if (type === 'Fetch') {
-					self.lastupdate = newest;		// Use the newest sensors' time
-				}
-				return aqi;
-			}
-		}
-		// No valid data - return cached value?
-		if ((type != 'Cache') && (self.cache != undefined)) {
-			return self.updateData( self.cache, 'Cache');
-		} else {
-			return 0;
-		}
+                if (type === 'Fetch') {
+                    self.lastupdate = newest;       // Use the newest sensors' time
+                }
+                return aqi;
+            }
+        }
+        // No valid data - return cached value?
+        if ((type != 'Cache') && (self.cache != undefined)) {
+            return self.updateData( self.cache, 'Cache');
+        } else {
+            return 0;
+        }
     },
 
-	calculateAQI: function(pm) {
-		var aqi;
-		var self = this;
-		if (pm > 500) {
-		  aqi = 500;
-		} else if (pm > 350.5) {
-		  aqi = self.remap(pm, 350.5, 500.5, 400, 500);
-		} else if (pm > 250.5) {
-		  aqi = self.remap(pm, 250.5, 350.5, 300, 400);
-		} else if (pm > 150.5) {
-		  aqi = self.remap(pm, 150.5, 250.5, 200, 300);
-		} else if (pm > 55.5) {
-		  aqi = self.remap(pm, 55.5, 150.5, 150, 200);
-		} else if (pm > 35.5) {
-		  aqi = self.remap(pm, 35.5, 55.5, 100, 150);
-		} else if (pm > 12) {
-		  aqi = self.remap(pm, 12, 35.5, 50, 100);
-		} else if (pm > 0) {
-		  aqi = self.remap(pm, 0, 12, 0, 50);
-		} else { aqi = 0 }
-		return aqi;
-	},
-	
+    calculateAQI: function(pm) {
+        var aqi;
+        var self = this;
+        if (pm > 500) {
+          aqi = 500;
+        } else if (pm > 350.5) {
+          aqi = self.remap(pm, 350.5, 500.5, 400, 500);
+        } else if (pm > 250.5) {
+          aqi = self.remap(pm, 250.5, 350.5, 300, 400);
+        } else if (pm > 150.5) {
+          aqi = self.remap(pm, 150.5, 250.5, 200, 300);
+        } else if (pm > 55.5) {
+          aqi = self.remap(pm, 55.5, 150.5, 150, 200);
+        } else if (pm > 35.5) {
+          aqi = self.remap(pm, 35.5, 55.5, 100, 150);
+        } else if (pm > 12) {
+          aqi = self.remap(pm, 12, 35.5, 50, 100);
+        } else if (pm > 0) {
+          aqi = self.remap(pm, 0, 12, 0, 50);
+        } else { aqi = 0 }
+        return aqi;
+    },
+
     /**
      * Return Air Quality Index
      * @param aqi
      * @returns {number}
      */
     transformAQI: function (aqi) {
-	// this.log("Transforming %s.", aqi.toString())
+    // this.log("Transforming %s.", aqi.toString())
         if (aqi == undefined) {
             return (0); // Error or unknown response
         } else if (aqi <= 50) {
@@ -237,16 +237,16 @@ PurpleAirAccessory.prototype = {
     },
 
     remap: function(value, fromLow, fromHigh, toLow, toHigh) {
-		var fromRange = fromHigh - fromLow;
-		var toRange = toHigh - toLow;
-		var scaleFactor = toRange / fromRange;
+        var fromRange = fromHigh - fromLow;
+        var toRange = toHigh - toLow;
+        var scaleFactor = toRange / fromRange;
 
-		// Re-zero the value within the from range
-		var tmpValue = value - fromLow;
-		// Rescale the value to the to range
-		tmpValue *= scaleFactor;
-		// Re-zero back to the to range
-		return tmpValue + toLow;
+        // Re-zero the value within the from range
+        var tmpValue = value - fromLow;
+        // Rescale the value to the to range
+        tmpValue *= scaleFactor;
+        // Re-zero back to the to range
+        return tmpValue + toLow;
     },
 
 
