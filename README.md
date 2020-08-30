@@ -34,7 +34,7 @@ Example config.json
 Fields:
 - `accessory` must be "PurpleAir" (required).
 - `purpleID` PurpleAir Station ID (a number).
-- `updateFreq` minimum number of seconds between reads from PurpleAir API (a number - default is 90 seconds)
+- `updateFreq` minimum number of seconds between reads from PurpleAir API (a number - default is 300 seconds, i.e. 5 minutes)
 - `name` Is the name of accessory (required).
 
 To find your specific "PURPLE_AIR_STATION_ID" (a string):
