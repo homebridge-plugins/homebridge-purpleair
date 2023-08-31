@@ -1,6 +1,8 @@
-# Homebridge-purpleair
-[![NPM Version](https://img.shields.io/npm/v/homebridge-airly.svg)](https://www.npmjs.com/package/homebridge-airly)
+# DEPRECATED
 
+Go to [tillkruss/homebridge-purpleair](https://github.com/tillkruss/homebridge-purpleair) instead.
+
+# Homebridge-purpleair
 **Homebridge plugin that is showing information about air quality from PurpleAir API.**
 
 Project is based on [homebridge-weather](https://github.com/werthdavid/homebridge-weather) and [homebridge-arinow](https://github.com/ToddGreenfield/homebridge-airnow).
